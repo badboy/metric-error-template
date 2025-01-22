@@ -1,0 +1,12 @@
+label {
+  display: inline-block;
+  width: 120px;
+}
+
+fieldset p {
+  margin: 0;
+}
+
+input, select {
+  width: 80%;
+}

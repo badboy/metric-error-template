@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Glean metric error template</title>
+    <link rel="stylesheet" href="simple.min.css">
+    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  </head>
+  <body>
+    <main class="container">
+      <h1>Glean metric error template</h1>
+    <div>
+    <form>
+      <fieldset>
+        <p>
+          <label for="application">Application:</label>
+          <select name="application">
+            <option value="">---</option>
+            <option value="firefox_desktop">Firefox Desktop</option>
+            <option value="fenix">Firefox for Android (Fenix)</option>
+            <option value="firefox_ios">Firefox for iOS</option>
+          </select>
+        </p>
+
+        <p>
+          <label for="channel">Channel:</label>
+          <select name="channel">
+            <option>---</option>
+            <option>Release</option>
+            <option>Beta</option>
+            <option>Nightly</option>
+          </select>
+        </p>
+
+        <p>
+          <label for="metric">Metric:</label>
+          <input type="text" name="metric" list="metric-list">
+        </p>
+
+        <datalist id="metric-list">
+        </datalist>
+
+        <p>
+          <label for="error">Error:</label>
+          <select name="error">
+            <option>---</option>
+            <option>Invalid Value</option>
+            <option>Invalid Label</option>
+            <option>Invalid State</option>
+            <option>Invalid Type</option>
+            <option>Invalid Overflow</option>
+          </select>
+        </p>
+
+        <p>
+          <label for="start-date">Start Date:</label>
+          <input type="date" name="start-date">
+        </p>
+
+        <p>
+          <label for="end-date">End Date:</label>
+          <input type="date" name="end-date">
+        </p>
+      </fieldset>
+    </form>
+    </div>
+
+    <div>
+    <textarea rows=20 cols=100 readonly></textarea>
+    </div>
+    </main>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
