@@ -10,3 +10,16 @@ fieldset p {
 input, select {
   width: 80%;
 }
+
+div#mdout {
+  display: none;
+}
+
+div#mdout {
+  border: 1px solid var(--border);
+  padding: 5px;
+}
+
+div#mdout p {
+  margin: 0;
+}

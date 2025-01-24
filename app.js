@@ -1,3 +1,8 @@
+import { marked } from "./marked.esm.js";
+marked.use({
+  gfm: true,
+});
+
 class Templ {
   constructor(template) {
     this.template = template;
@@ -160,7 +165,7 @@ function renderTemplate() {
   let endDate = document.querySelector("input[name=end-date]").value;
 
   let text = document.querySelector("textarea");
-  text.value = TEMPLATE.render({
+  let desc = TEMPLATE.render({
     channel: channel,
     metric: metric,
     error: error,
@@ -169,6 +174,10 @@ function renderTemplate() {
     metric_dictionary_url: dictionaryUrl(application, metric),
     looker_url: "TODO",
   });
+  text.value = desc;
+  let mdout = document.querySelector("div#mdout");
+  mdout.style.display = "block";
+  mdout.innerHTML = marked.parse(desc);
 }
 
 function setMetricList(metrics) {
