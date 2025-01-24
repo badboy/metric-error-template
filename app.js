@@ -81,6 +81,25 @@ class Templ {
   }
 }
 
+class Cache {
+  constructor() {
+    this.cache = new Map();
+  }
+
+  async get(key, fn) {
+    let obj = this.cache.get(key)
+    if (!obj) {
+      let newObj = await fn();
+      this.cache.set(key, newObj);
+      return newObj;
+    }
+
+    return obj;
+  }
+}
+
+const CACHE = new Cache();
+
 function debounce(func, wait, immediate) {
   let timeout;
   return function() {
@@ -96,6 +115,12 @@ function debounce(func, wait, immediate) {
     if (callNow) func.apply(context, args);
   };
 };
+
+async function cachedFetch(url) {
+  return CACHE.get(url, async () => {
+    return await fetch(url);
+  });
+}
 
 const METRICS = [
   "browser.search.in_content",
@@ -161,7 +186,7 @@ async function changeApplication(e) {
   let selected = e.target.value;
   if (selected != "") {
     let url = `https://dictionary.telemetry.mozilla.org/data/${selected}/index.json`;
-    let resp = await fetch(url);
+    let resp = await cachedFetch(url);
     let data = await resp.json();
     let metrics = data.metrics.map(m => m.name);
     setMetricList(metrics);
