@@ -1,6 +1,7 @@
 import { marked } from "./marked.esm.js";
 marked.use({
   gfm: true,
+  breaks: true,
 });
 
 class Templ {
