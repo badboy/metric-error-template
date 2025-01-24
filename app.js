@@ -109,7 +109,6 @@ const CACHE = new Cache();
 function debounce(func, wait, immediate) {
   let timeout;
   return function() {
-    console.log("debouncing");
     let context = this, args = arguments;
     let later = () => {
       timeout = null;
@@ -124,7 +123,8 @@ function debounce(func, wait, immediate) {
 
 async function cachedFetch(url) {
   return CACHE.get(url, async () => {
-    return await fetch(url);
+    let resp = await fetch(url);
+    return await resp.json();
   });
 }
 
@@ -138,12 +138,14 @@ const TEMPLATE = new Templ(`We're seeing an increase in {{=error}} metric errors
 Error: {{=error}}
 Channel: {{=channel}}
 Date range: {{=date_from}} to {{=date_to}}
-Looker graph: {{=looker_url}}
+Graph: {{=graph_url}}
 
 * TODO
 
 See also [the error reporting docs](https://mozilla.github.io/glean/book/user/metrics/error-reporting.html).
 `);
+
+const SQL_TEMPLATE = new Templ("https://sql.telemetry.mozilla.org/queries/105105/source?p_appid={{=appid}}&p_channel={{=channel}}&p_date_range={{=start}}--{{=end}}&p_error_type={{=error_type}}&p_metric={{=metric}}#258708")
 
 const APPLICATION_MAP = {
   "firefox_desktop": "Firefox Desktop",
@@ -157,6 +159,35 @@ function dictionaryUrl(app, metric) {
   return url;
 }
 
+function redashUrl(appid, channel, start, end, metric) {
+  return SQL_TEMPLATE.render({
+    appid: appid,
+    channel: channel,
+    start: start,
+    end: end,
+    metric: metric,
+  });
+}
+
+const APP_MAP = new Map([
+  ['firefox_desktop', 'firefox_desktop'],
+  ['firefox_ios__release', 'org_mozilla_ios_firefox'],
+  ['firefox_ios__beta', 'org_mozilla_ios_firefoxbeta'],
+  ['firefox_ios__nightly', 'org_mozilla_ios_fennec'],
+  ['fenix__release', 'org_mozilla_firefox'],
+  ['fenix__beta', 'org_mozilla_firefox_beta'],
+  ['fenix__nightly', 'org_mozilla_fenix'],
+]);
+
+function cleanAppId(application, channel) {
+  let appid = APP_MAP.get(application);
+  if (appid) {
+    return appid;
+  }
+
+  return APP_MAP.get(application + "__" + channel);
+}
+
 function renderTemplate() {
   let application = document.querySelector("select[name=application]").value;
   let channel = document.querySelector("select[name=channel]").value;
@@ -164,6 +195,10 @@ function renderTemplate() {
   let error = document.querySelector("select[name=error]").value;
   let startDate = document.querySelector("input[name=start-date]").value;
   let endDate = document.querySelector("input[name=end-date]").value;
+
+  let lowerChannel = channel.toLowerCase();
+  let appid = cleanAppId(application, lowerChannel);
+  let graphUrl = redashUrl(appid, lowerChannel, startDate, endDate, metric);
 
   let text = document.querySelector("textarea");
   let desc = TEMPLATE.render({
@@ -173,7 +208,7 @@ function renderTemplate() {
     date_from: startDate,
     date_to: endDate,
     metric_dictionary_url: dictionaryUrl(application, metric),
-    looker_url: "TODO",
+    graph_url: graphUrl,
   });
   text.value = desc;
   let mdout = document.querySelector("div#mdout");
@@ -197,14 +232,12 @@ async function changeApplication(e) {
   let selected = e.target.value;
   if (selected != "") {
     let url = `https://dictionary.telemetry.mozilla.org/data/${selected}/index.json`;
-    let resp = await cachedFetch(url);
-    let data = await resp.json();
+    let data = await cachedFetch(url);
     let metrics = data.metrics.map(m => m.name);
     setMetricList(metrics);
 
     let metric = document.querySelector("input[name=metric]");
     let oldValue = metric.value;
-    window.e = metrics;
     if (metrics.indexOf(oldValue) < 0) {
       metric.value = "";
     }
