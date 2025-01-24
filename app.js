@@ -145,7 +145,7 @@ Graph: {{=graph_url}}
 See also [the error reporting docs](https://mozilla.github.io/glean/book/user/metrics/error-reporting.html).
 `);
 
-const SQL_TEMPLATE = new Templ("https://sql.telemetry.mozilla.org/queries/105105/source?p_appid={{=appid}}&p_channel={{=channel}}&p_date_range={{=start}}--{{=end}}&p_error_type={{=error_type}}&p_metric={{=metric}}#258708")
+const SQL_TEMPLATE = new Templ("https://sql.telemetry.mozilla.org/queries/105105/source?p_appid={{=appid}}&p_channel={{=channel}}&p_date_range={{=start}}--{{=end}}&p_error_type={{=error}}&p_metric={{=metric}}#258708")
 
 const APPLICATION_MAP = {
   "firefox_desktop": "Firefox Desktop",
@@ -159,12 +159,13 @@ function dictionaryUrl(app, metric) {
   return url;
 }
 
-function redashUrl(appid, channel, start, end, metric) {
+function redashUrl(appid, channel, start, end, error, metric) {
   return SQL_TEMPLATE.render({
     appid: appid,
     channel: channel,
     start: start,
     end: end,
+    error: error,
     metric: metric,
   });
 }
@@ -198,7 +199,7 @@ function renderTemplate() {
 
   let lowerChannel = channel.toLowerCase();
   let appid = cleanAppId(application, lowerChannel);
-  let graphUrl = redashUrl(appid, lowerChannel, startDate, endDate, metric);
+  let graphUrl = redashUrl(appid, lowerChannel, startDate, endDate, error, metric);
 
   let text = document.querySelector("textarea");
   let desc = TEMPLATE.render({
