@@ -167,6 +167,7 @@ function renderTemplate() {
     date_from: startDate,
     date_to: endDate,
     metric_dictionary_url: dictionaryUrl(application, metric),
+    looker_url: "TODO",
   });
 }
 
