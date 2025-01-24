@@ -136,7 +136,7 @@ Looker graph: {{=looker_url}}
 
 * TODO
 
-See also [the docs](https://mozilla.github.io/glean/book/reference/metrics/labeled_counters.html#recorded-errors).
+See also [the error reporting docs](https://mozilla.github.io/glean/book/user/metrics/error-reporting.html).
 `);
 
 const APPLICATION_MAP = {
