@@ -154,7 +154,7 @@ const APPLICATION_MAP = {
 }
 
 function dictionaryUrl(app, metric) {
-  let cleanMetric = metric.replace(".", "_");
+  let cleanMetric = metric.replaceAll(".", "_");
   let url = `https://dictionary.telemetry.mozilla.org/apps/${app}/metrics/${cleanMetric}`;
   return url;
 }
