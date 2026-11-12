@@ -1,8 +1,12 @@
 import { marked } from "./marked.esm.js";
+import "./bz.js";
+
 marked.use({
   gfm: true,
   breaks: true,
 });
+
+const bugzilla = bz.createClient();
 
 class Templ {
   constructor(template) {
@@ -141,6 +145,8 @@ See also [the error reporting docs](https://mozilla.github.io/glean/book/user/me
 `);
 
 const SQL_TEMPLATE = new Templ("https://sql.telemetry.mozilla.org/queries/131404/?p_appid={{=appid}}&p_channel={{=channel}}&p_date_range={{=start}}--{{=end}}&p_error_type={{=error}}&p_metric={{=metric}}#315970")
+const BUG_TEMPLATE = new Templ("https://bugzilla.mozilla.org/enter_bug.cgi?product={{=product}}&component={{=component}}&blocked=1943045&short_desc={{=summary}}&comment={{=description}}")
+const SUMMARY_TEMPLATE = new Templ("Increase in {{=error}} errors for {{=metric}} since {{=date_from}}");
 
 const APPLICATION_MAP = {
   "firefox_desktop": "Firefox Desktop",
@@ -165,6 +171,15 @@ function redashUrl(appid, channel, start, end, error, metric) {
   });
 }
 
+function bugUrl(product, component, summary, description) {
+  return BUG_TEMPLATE.render({
+    product: encodeURIComponent(product),
+    component: encodeURIComponent(component),
+    summary: encodeURIComponent(summary),
+    description: encodeURIComponent(description),
+  })
+}
+
 const APP_MAP = new Map([
   ['firefox_desktop', 'firefox_desktop'],
   ['firefox_ios__release', 'org_mozilla_ios_firefox'],
@@ -184,7 +199,28 @@ function cleanAppId(application, channel) {
   return APP_MAP.get(application + "__" + channel);
 }
 
-function renderTemplate() {
+async function getBug(bugId) {
+  let queryParams = {};
+  const include_fields = [
+    "id",
+    "product",
+    "component",
+  ].join(",");
+  queryParams.include_fields = include_fields;
+
+  return new Promise((resolve, reject) => {
+    bugzilla.getBug(bugId, queryParams, (error, bugs) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+
+      resolve(bugs);
+    });
+  });
+}
+
+async function renderTemplate() {
   let application = document.querySelector("select[name=application]").value;
   let channel = document.querySelector("select[name=channel]").value;
   let metric = document.querySelector("input[name=metric]").value;
@@ -210,6 +246,34 @@ function renderTemplate() {
   let mdout = document.querySelector("div#mdout");
   mdout.style.display = "block";
   mdout.innerHTML = marked.parse(desc);
+
+  if (application && metric) {
+    try {
+      let url = `https://dictionary.telemetry.mozilla.org/data/${application}/index.json`;
+      let data = await cachedFetch(url);
+      if (data) {
+        let metricData = data.metrics.find(e => e.name == metric);
+        if (metricData) {
+          let bug = metricData.bugs[0];
+          let bugId = bug.match(/\d+/)[0]
+          let bugData = await getBug(bugId);
+          let summary = SUMMARY_TEMPLATE.render({ date_from: startDate, error, metric });
+          let url = bugUrl(bugData.product, bugData.component, summary, desc);
+
+          let urlOut = document.querySelector("#buglink");
+          urlOut.innerHTML = "";
+
+          let link = document.createElement("a");
+          link.href = url;
+          link.innerText = `File a bug (in ${bugData.product} :: ${bugData.component})`;
+          link.target = "_blank";
+          urlOut.appendChild(link);
+        }
+      }
+    } catch (e) {
+      console.log(`Failed to generate bug filing URL. Error: ${e}`);
+    }
+  }
 }
 
 function setMetricList(metrics) {
