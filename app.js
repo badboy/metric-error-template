@@ -242,6 +242,21 @@ async function changeApplication(e) {
   renderTemplate();
 }
 
+function preselectedTimeRange(e) {
+  e.preventDefault();
+  const target = e.target;
+
+  let days = target.getAttribute('data-value')|0;
+  let startDate = document.querySelector("[name=start-date]");
+  let endDate = document.querySelector("[name=end-date]");
+  let now = new Date;
+  endDate.valueAsDate = now;
+  now.setDate(now.getDate() - days);
+  startDate.valueAsDate = now;
+
+  renderTemplate();
+}
+
 async function main() {
   let input;
 
@@ -263,6 +278,13 @@ async function main() {
 
   input = document.querySelector("[name=end-date]");
   input.addEventListener("change", (e) => renderTemplate());
+
+  input = document.querySelectorAll("button.time-range");
+  for (const button of input) {
+    button.addEventListener("click", preselectedTimeRange);
+  }
+
+  renderTemplate();
 }
 
 document.addEventListener("DOMContentLoaded", () => {
