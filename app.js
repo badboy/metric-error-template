@@ -128,11 +128,6 @@ async function cachedFetch(url) {
   });
 }
 
-const METRICS = [
-  "browser.search.in_content",
-  "localstorage.database.request_allow_to_close_response_time",
-];
-
 const TEMPLATE = new Templ(`We're seeing an increase in {{=error}} metric errors for the [{{=metric}}]({{=metric_dictionary_url}}) metric.
 
 Error: {{=error}}
@@ -145,7 +140,7 @@ Graph: {{=graph_url}}
 See also [the error reporting docs](https://mozilla.github.io/glean/book/user/metrics/error-reporting.html).
 `);
 
-const SQL_TEMPLATE = new Templ("https://sql.telemetry.mozilla.org/queries/105105/source?p_appid={{=appid}}&p_channel={{=channel}}&p_date_range={{=start}}--{{=end}}&p_error_type={{=error}}&p_metric={{=metric}}#258708")
+const SQL_TEMPLATE = new Templ("https://sql.telemetry.mozilla.org/queries/131404/?p_appid={{=appid}}&p_channel={{=channel}}&p_date_range={{=start}}--{{=end}}&p_error_type={{=error}}&p_metric={{=metric}}#315970")
 
 const APPLICATION_MAP = {
   "firefox_desktop": "Firefox Desktop",
@@ -165,7 +160,7 @@ function redashUrl(appid, channel, start, end, error, metric) {
     channel: channel,
     start: start,
     end: end,
-    error: error,
+    error: encodeURIComponent(error),
     metric: metric,
   });
 }
